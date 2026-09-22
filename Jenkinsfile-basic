@@ -1,9 +1,13 @@
 pipeline {
     agent any
+environment {
+        NEW_VERSION = "1.0.0-ubuntu"
+        // Example: could be computed from code later
+    }
 stages {
         stage('Build') {
             steps {
-                echo 'Building the application'
+                echo "Building application, version ${env.NEW_VERSION}"
             }
         }
         stage('Test') {
@@ -25,7 +29,7 @@ stages {
     }
 post {
         always {
-            echo 'Post: always run (cleanup, notifications, etc.)'
+            echo "Build number: ${env.BUILD_NUMBER}, branch: ${env.BRANCH_NAME}"
         }
         success {
             echo 'Post: build succeeded'
