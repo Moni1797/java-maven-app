@@ -43,13 +43,24 @@ parameters {
 }
 
 
-        stage('Deploy') {
+       stage('Deploy') {
     steps {
-        echo "Deploying version ${params.DEPLOY_VERSION}"
+        script {
+            def envChoice = input(
+                message: 'Select environment to deploy to',
+                ok: 'Done',
+                parameters: [
+                    choice(
+                        name: 'ENV',
+                        choices: ['dev', 'staging', 'prod'],
+                        description: 'Environment to deploy'
+                    )
+                ]
+            )
+            echo "Deploying to ${envChoice}"
+        }
     }
 }
-
-
         stage('Docker Login') {
             steps {
                 script {
