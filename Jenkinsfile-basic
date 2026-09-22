@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven'
+    }
+
     environment {
         NEW_VERSION = "1.0.0-ubuntu"
     }
@@ -10,11 +14,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building application, version ${env.NEW_VERSION}"
+                sh "mvn -version"
             }
         }
-tools {
-        maven 'Maven'
-    }
 
         stage('Test') {
             when {
