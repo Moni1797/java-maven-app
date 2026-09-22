@@ -32,15 +32,16 @@ parameters {
         }
 
         stage('Test') {
-            when {
-                expression {
-                    env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'master'
-                }
-            }
-            steps {
-                echo "Testing the application on branch ${env.BRANCH_NAME}"
-            }
+    when {
+        expression {
+            params.EXECUTE_TESTS
         }
+    }
+    steps {
+        echo "Testing application, EXECUTE_TESTS=${params.EXECUTE_TESTS}"
+    }
+}
+
 
         stage('Deploy') {
             steps {
