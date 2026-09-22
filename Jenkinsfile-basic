@@ -44,10 +44,11 @@ parameters {
 
 
         stage('Deploy') {
-            steps {
-                echo 'Deploying the application'
-            }
-        }
+    steps {
+        echo "Deploying version ${params.DEPLOY_VERSION}"
+    }
+}
+
 
         stage('Docker Login') {
             steps {
