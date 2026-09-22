@@ -1,7 +1,6 @@
 pipeline {
     agent any
-
-    stages {
+stages {
         stage('Build') {
             steps {
                 echo 'Building the application'
@@ -18,4 +17,16 @@ pipeline {
             }
         }
     }
+post {
+        always {
+            echo 'Post: always run (cleanup, notifications, etc.)'
+        }
+        success {
+            echo 'Post: build succeeded'
+        }
+        failure {
+            echo 'Post: build failed'
+        }
+    }
 }
+
