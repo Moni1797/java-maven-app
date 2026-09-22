@@ -7,10 +7,16 @@ stages {
             }
         }
         stage('Test') {
-            steps {
-                echo 'Testing the application'
-            }
+    when {
+        expression {
+            // Only run tests on 'dev' or 'master'
+            env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'master'
         }
+    }
+    steps {
+        echo "Testing the application on branch ${env.BRANCH_NAME}"
+    }
+}
         stage('Deploy') {
             steps {
                 echo 'Deploying the application'
