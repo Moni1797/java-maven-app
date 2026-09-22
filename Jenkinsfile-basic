@@ -12,6 +12,9 @@ pipeline {
                 echo "Building application, version ${env.NEW_VERSION}"
             }
         }
+tools {
+        maven 'Maven'
+    }
 
         stage('Test') {
             when {
