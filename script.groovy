@@ -7,7 +7,7 @@ def buildImage(String tag) {
     echo "building the docker image with tag: ${tag}"
 
     withCredentials([usernamePassword(
-        credentialsId: 'docker-hub-repo',
+        credentialsId: 'dockerhub-repo',
         usernameVariable: 'USER',
         passwordVariable: 'PASS'
     )]) {
