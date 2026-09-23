@@ -1,14 +1,19 @@
 def buildJar() {
     echo 'building the application...'
-    sh 'mvn package'
+    sh 'mvn clean package'
 }
 
-def buildImage() {
-    echo "building the docker image..."
-    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-        sh 'docker build -t munibawan/demo-app:jma-2.0 .'
-        sh 'echo $PASS | docker login -u $USER --password-stdin'
-        sh 'docker munibawan/demo-app:jma-2.0'
+def buildImage(String tag) {
+    echo "building the docker image with tag: ${tag}"
+
+    withCredentials([usernamePassword(
+        credentialsId: 'docker-hub-repo',
+        usernameVariable: 'USER',
+        passwordVariable: 'PASS'
+    )]) {
+        sh "docker build -t munibawan/demo-app:${tag} ."
+        sh "echo $PASS | docker login -u $USER --password-stdin"
+        sh "docker push munibawan/demo-app:${tag}"
     }
 }
 
