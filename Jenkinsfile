@@ -9,7 +9,6 @@ pipeline {
                 sh "mvn test"
             }
         }
-
         stage("build") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -48,4 +47,3 @@ pipeline {
         }               
     }
 }
-
