@@ -1,7 +1,10 @@
 pipeline {
     agent any
- tools {
+
+    tools {
         maven 'Maven-3.9.6'
+    }
+
     stages {
 
         stage("test") {
@@ -10,14 +13,27 @@ pipeline {
                 sh "mvn test"
             }
         }
+
         stage("build") {
             when {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
                 script {
-                    echo "Building the application...."
-                    sh "mvn package"
+                    def gv = load "script.groovy"
+                    gv.buildJar()
+                }
+            }
+        }
+
+        stage("docker-build-push") {
+            when {
+                expression { env.BRANCH_NAME == "master" }
+            }
+            steps {
+                script {
+                    def gv = load "script.groovy"
+                    gv.buildImage(params.IMAGE_TAG)
                 }
             }
         }
@@ -28,11 +44,8 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Deploying the application...."
-                    sh '''
-                        docker build -t java-maven-app .
-                        docker images
-                    '''
+                    def gv = load "script.groovy"
+                    gv.deployApp()
                 }
             }
         }
@@ -44,3 +57,4 @@ pipeline {
         }
     }
 }
+
