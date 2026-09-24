@@ -1,40 +1,50 @@
-def gv
-
-pipeline {   
+pipeline {
     agent any
-    tools {
-        maven 'Maven'
-    }
+
     stages {
-        stage("init") {
+
+        stage("test") {
             steps {
-                script {
-                    gv = load "script.groovy"
-                }
-            }
-        }
-        stage("build jar") {
-            steps {
-                script {
-                    gv.buildJar()
-                }
+                echo "Executing pipeline for branch: ${env.BRANCH_NAME}"
+                sh "mvn test"
             }
         }
 
-        stage("build image") {
+        stage("build") {
+            when {
+                expression { env.BRANCH_NAME == "master" }
+            }
             steps {
                 script {
-                    gv.buildImage(params.IMAGE_TAG)
+                    echo "Building the application...."
+                    sh "mvn package"
                 }
             }
         }
 
         stage("deploy") {
+            when {
+                expression { env.BRANCH_NAME == "master" }
+            }
             steps {
                 script {
-                    gv.deployApp()
+                    echo "Deploying the application...."
+                    sh '''
+                        docker build -t java-maven-app .
+                        docker images
+                    '''
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline completed for branch: ${env.BRANCH_NAME}"
+        }
+    }
+}
+
         }               
     }
 }
