@@ -1,3 +1,5 @@
+@Library('jenkins-shared-lib') _
+
 pipeline {
     agent any
 
@@ -19,10 +21,7 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                script {
-                    def gv = load "script.groovy"
-                    gv.buildJar()
-                }
+                buildJar()
             }
         }
 
@@ -31,10 +30,7 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                script {
-                    def gv = load "script.groovy"
-                    gv.buildImage(params.IMAGE_TAG)
-                }
+                buildImage(params.IMAGE_TAG)
             }
         }
 
@@ -43,10 +39,7 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                script {
-                    def gv = load "script.groovy"
-                    gv.deployApp()
-                }
+                deployApp()
             }
         }
     }
@@ -57,4 +50,5 @@ pipeline {
         }
     }
 }
+
 
