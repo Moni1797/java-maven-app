@@ -26,15 +26,17 @@ pipeline {
         }
 
         stage("docker-build-push") {
-            when {
-                expression { env.BRANCH_NAME == "master" }
-            }
-            steps {
-                def tag = env.GIT_COMMIT.take(7)
-                buildImage(tag)
-
-            }
+    when {
+        expression { env.BRANCH_NAME == "master" }
+    }
+    steps {
+        script {
+            def tag = env.GIT_COMMIT.take(7)
+            buildImage(tag)
         }
+    }
+}
+
 
         stage("deploy") {
             when {
