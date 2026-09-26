@@ -30,7 +30,9 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                buildImage(params.IMAGE_TAG)
+                def tag = env.GIT_COMMIT.take(7)
+                buildImage(tag)
+
             }
         }
 
