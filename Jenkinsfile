@@ -13,7 +13,6 @@ pipeline {
                 sh "mvn test"
             }
         }
-
         stage("build") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -25,7 +24,6 @@ pipeline {
                 }
             }
         }
-
         stage("docker-build-push") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -37,7 +35,6 @@ pipeline {
                 }
             }
         }
-
         stage("deploy") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -57,4 +54,3 @@ pipeline {
         }
     }
 }
-
