@@ -1,11 +1,28 @@
+@Library('jenkins-shared-lib') _
 pipeline {
     agent any
-
     tools {
         maven 'Maven-3.9.6'
     }
-
     stages {
+
+        // ⭐ NEW STAGE GOES HERE — BEFORE ANY BUILDING HAPPENS
+        stage("increment-version") {
+            when {
+                expression { env.BRANCH_NAME == "master" }
+            }
+            steps {
+                script {
+                    echo "Incrementing application version..."
+
+                    sh '''
+                        mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit
+                    '''
+                }
+            }
+        }
 
         stage("test") {
             steps {
@@ -19,10 +36,7 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                script {
-                    def gv = load "script.groovy"
-                    gv.buildJar()
-                }
+                buildJar()
             }
         }
 
@@ -32,8 +46,10 @@ pipeline {
             }
             steps {
                 script {
-                    def gv = load "script.groovy"
-                    gv.buildImage(params.IMAGE_TAG)
+                    def tag = env.GIT_COMMIT.take(7)
+                    dockerLogin()
+                    buildImage(tag)
+                    dockerPush(tag)
                 }
             }
         }
@@ -43,10 +59,7 @@ pipeline {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                script {
-                    def gv = load "script.groovy"
-                    gv.deployApp()
-                }
+                deployApp()
             }
         }
     }
