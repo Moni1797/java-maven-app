@@ -1,12 +1,14 @@
 @Library('jenkins-shared-lib') _
 pipeline {
     agent any
+
     tools {
         maven 'Maven-3.9.6'
     }
+
     stages {
 
-        // ⭐ NEW STAGE GOES HERE — BEFORE ANY BUILDING HAPPENS
+        // SECTION A — AUTO VERSION BUMP
         stage("increment-version") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -24,6 +26,20 @@ pipeline {
             }
         }
 
+        // SECTION B — READ VERSION AND STORE IN PIPELINE VARIABLE
+        stage("read-version") {
+            when {
+                expression { env.BRANCH_NAME == "master" }
+            }
+            steps {
+                script {
+                    env.APP_VERSION = readMavenVersion()
+                    echo "Application version: ${env.APP_VERSION}"
+                }
+            }
+        }
+
+        // TEST ALWAYS RUNS
         stage("test") {
             steps {
                 echo "Executing pipeline for branch: ${env.BRANCH_NAME}"
@@ -31,6 +47,7 @@ pipeline {
             }
         }
 
+        // BUILD JAR USING BUMPED VERSION
         stage("build") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -40,26 +57,27 @@ pipeline {
             }
         }
 
+        // DOCKER BUILD + PUSH USING BUMPED VERSION
         stage("docker-build-push") {
             when {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
                 script {
-                    def tag = env.GIT_COMMIT.take(7)
                     dockerLogin()
-                    buildImage(tag)
-                    dockerPush(tag)
+                    buildImage(env.APP_VERSION)
+                    dockerPush(env.APP_VERSION)
                 }
             }
         }
 
+        // DEPLOY USING BUMPED VERSION
         stage("deploy") {
             when {
                 expression { env.BRANCH_NAME == "master" }
             }
             steps {
-                deployApp()
+                deployApp(env.APP_VERSION)
             }
         }
     }
@@ -67,6 +85,6 @@ pipeline {
     post {
         always {
             echo "Pipeline completed for branch: ${env.BRANCH_NAME}"
-        	}
-	}
+        }
+    }
 }
