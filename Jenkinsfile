@@ -9,10 +9,12 @@ pipeline {
     stages {
 
         // SECTION A — AUTO VERSION BUMP
+        //
         // IMPORTANT:
-        //  - Maven only reliably increments versions when they are SNAPSHOTs.
-        //  - We ALWAYS re-add "-SNAPSHOT" after bumping so future bumps keep working.
-        //  - This keeps the version "incremental" on every push to master.
+        //  - Maven variables like ${parsedVersion.majorVersion} must NOT be expanded by the shell.
+        //  - We escape them as \\${...} inside the sh ''' ... ''' block.
+        //  - Groovy eats the first backslash, the shell sees the second, Maven receives ${...}.
+        //  - We ALWAYS re-add "-SNAPSHOT" so future bumps keep working.
         stage("increment-version") {
             when {
                 expression { env.BRANCH_NAME == "master" }
@@ -23,7 +25,7 @@ pipeline {
 
                     sh '''
                         mvn build-helper:parse-version versions:set \
-                        -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT \
+                        -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion}-SNAPSHOT \
                         versions:commit
                     '''
                     // Example flow:
@@ -31,11 +33,13 @@ pipeline {
                     //   1.1.1-SNAPSHOT -> 1.1.2-SNAPSHOT
                     //   1.1.2-SNAPSHOT -> 1.1.3-SNAPSHOT
                     // Without "-SNAPSHOT", the version would get stuck after the first bump.
+                    // Without \\${...} escaping, the shell throws "Bad substitution".
                 }
             }
         }
 
         // SECTION B — READ VERSION AND STORE IN PIPELINE VARIABLE
+        //
         // Reads the current Maven version (including -SNAPSHOT) and exposes it as APP_VERSION.
         // This APP_VERSION is then used consistently for:
         //   - JAR build
@@ -72,6 +76,7 @@ pipeline {
         }
 
         // DOCKER BUILD + PUSH USING BUMPED VERSION (MASTER ONLY)
+        //
         // Uses APP_VERSION (which includes -SNAPSHOT) as the image tag.
         // This keeps Docker tags aligned with Maven versions.
         stage("docker-build-push") {
@@ -88,6 +93,7 @@ pipeline {
         }
 
         // DEPLOY USING BUMPED VERSION (MASTER ONLY)
+        //
         // Deploys the exact version that was built and pushed.
         stage("deploy") {
             when {
