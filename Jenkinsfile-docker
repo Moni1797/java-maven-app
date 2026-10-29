@@ -1,29 +1,37 @@
 pipeline {
-        agent { label 'ec2-agent-01' }
+    agent { label 'ec2-agent-01' }
 
-        stages {
-            stage('Docker Build') {
-                steps {
-                    sh 'docker build -t test-image .'
-                }
+    stages {
+
+        stage('Maven Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
             }
+        }
 
-            stage('Tag & Push') {
-                steps {
-                    sh '''
-                        aws ecr get-login-password --region eu-west-2 \
-                            | docker login \
-                                --username AWS \
-                                --password-stdin \
-                                977919068499.dkr.ecr.eu-west-2.amazonaws.com
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t test-image .'
+            }
+        }
 
-                        docker tag test-image:latest \
-                            977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
+        stage('Tag & Push') {
+            steps {
+                sh '''
+                    aws ecr get-login-password --region eu-west-2 \
+                        | docker login \
+                            --username AWS \
+                            --password-stdin \
+                            977919068499.dkr.ecr.eu-west-2.amazonaws.com
 
-                        docker push \
-                            977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
-                    '''
-                }
+                    docker tag test-image:latest \
+                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
+
+                    docker push \
+                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
+                '''
             }
         }
     }
+}
+
