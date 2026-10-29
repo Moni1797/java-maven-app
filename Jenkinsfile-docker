@@ -1,6 +1,12 @@
 pipeline {
     agent { label 'ec2-agent-01' }
 
+    environment {
+        COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        BUILD  = "${env.BUILD_NUMBER}"
+        IMAGE  = "977919068499.dkr.ecr.eu-west-2.amazonaws.com/munib-demo"
+    }
+
     stages {
 
         stage('Maven Build') {
@@ -11,11 +17,16 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t munib-demo .'
+                sh '''
+                    docker build -t munib-demo:${COMMIT} .
+                    docker tag munib-demo:${COMMIT} ${IMAGE}:${COMMIT}
+                    docker tag munib-demo:${COMMIT} ${IMAGE}:${BUILD}
+                    docker tag munib-demo:${COMMIT} ${IMAGE}:latest
+                '''
             }
         }
 
-        stage('Tag & Push') {
+        stage('ECR Login') {
             steps {
                 sh '''
                     aws ecr get-login-password --region eu-west-2 \
@@ -23,12 +34,16 @@ pipeline {
                             --username AWS \
                             --password-stdin \
                             977919068499.dkr.ecr.eu-west-2.amazonaws.com
+                '''
+            }
+        }
 
-                    docker tag munib-demo:latest \
-                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/munib-demo:latest
-
-                    docker push \
-                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/munib-demo:latest
+        stage('Push Images') {
+            steps {
+                sh '''
+                    docker push ${IMAGE}:${COMMIT}
+                    docker push ${IMAGE}:${BUILD}
+                    docker push ${IMAGE}:latest
                 '''
             }
         }
