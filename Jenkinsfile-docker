@@ -11,7 +11,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t test-image .'
+                sh 'docker build -t munib-demo .'
             }
         }
 
@@ -24,11 +24,11 @@ pipeline {
                             --password-stdin \
                             977919068499.dkr.ecr.eu-west-2.amazonaws.com
 
-                    docker tag test-image:latest \
-                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
+                    docker tag munib-demo:latest \
+                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/munib-demo:latest
 
                     docker push \
-                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/test-image:latest
+                        977919068499.dkr.ecr.eu-west-2.amazonaws.com/munib-demo:latest
                 '''
             }
         }
